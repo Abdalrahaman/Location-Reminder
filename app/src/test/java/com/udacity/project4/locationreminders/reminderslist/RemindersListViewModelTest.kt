@@ -107,7 +107,7 @@ class RemindersListViewModelTest {
         //then
         assertThat(
             remindersListViewModel.showSnackBar.getOrAwaitValue(),
-            `is`("Reminders not found")
+            `is`("Error Occurred when get all reminders")
         )
     }
 

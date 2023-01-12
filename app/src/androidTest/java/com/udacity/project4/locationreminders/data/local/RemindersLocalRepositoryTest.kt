@@ -64,12 +64,32 @@ class RemindersLocalRepositoryTest {
 
         // THEN - Same reminder is returned
         result as Result.Success
-        Assert.assertThat(result.data.id, `is`(reminder1.id))
-        Assert.assertThat(result.data.title, `is`(reminder1.title))
-        Assert.assertThat(result.data.description, `is`(reminder1.description))
-        Assert.assertThat(result.data.location, `is`(reminder1.location))
-        Assert.assertThat(result.data.latitude, `is`(reminder1.latitude))
-        Assert.assertThat(result.data.longitude, `is`(reminder1.longitude))
+        assertThat(result.data.id, `is`(reminder1.id))
+        assertThat(result.data.title, `is`(reminder1.title))
+        assertThat(result.data.description, `is`(reminder1.description))
+        assertThat(result.data.location, `is`(reminder1.location))
+        assertThat(result.data.latitude, `is`(reminder1.latitude))
+        assertThat(result.data.longitude, `is`(reminder1.longitude))
+    }
+
+    @Test
+    fun getReminderById_error_returnReminderNotFound() = runBlocking {
+        // WHEN  - Reminder retrieved by ID
+        val result = localRepository.getReminder(reminder1.id)
+
+        // THEN
+        result as Result.Error
+        assertThat(result.message, `is`("Reminder not found!"))
+    }
+
+    @Test
+    fun getReminders_empty_returnEmptyRemindersList() = runBlocking {
+        // WHEN
+        val result = localRepository.getReminders()
+
+        // THEN
+        result as Result.Success
+        assertThat(result.data.size, `is`(0))
     }
 
     @Test

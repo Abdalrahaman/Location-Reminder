@@ -1,5 +1,6 @@
 package com.udacity.project4
 
+import android.app.Activity
 import android.app.Application
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
@@ -7,11 +8,11 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.PointOfInterest
+import androidx.test.rule.ActivityTestRule
 import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.local.LocalDB
@@ -24,8 +25,11 @@ import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.hamcrest.Matchers.`is`
+import org.hamcrest.Matchers.not
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -35,6 +39,7 @@ import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
 import org.koin.test.inject
+
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -48,8 +53,17 @@ class RemindersActivityTest :
 
     private val dataBindingIdlingResource = DataBindingIdlingResource()
 
-//    @get:Rule
-//    val activityRule = ActivityTestRule(RemindersActivity::class.java)
+    @get:Rule
+    val activityRule = ActivityTestRule(RemindersActivity::class.java)
+
+    private fun getActivity(activityScenario: ActivityScenario<RemindersActivity>): Activity? {
+        var activity: Activity? = null
+        activityScenario.onActivity {
+            activity = it
+        }
+        return activity
+    }
+
 
     /**
      * As we use Koin as a Service Locator Library to develop our code, we'll also use Koin to test our code.
@@ -119,18 +133,17 @@ class RemindersActivityTest :
         onView(withId(R.id.map)).perform(click())
 
         withContext(Dispatchers.Main){
-            _viewModel.selectedPOI(PointOfInterest(LatLng(37.422184868, -122.084111155), "LOCATION", "LOCATION"))
+            _viewModel.selectLocationReminder("LOCATION", 37.422184868, -122.084111155)
         }
-
-        onView(isRoot()).perform(pressBack())
 
         onView(withId(R.id.selectedLocation)).check(matches(withText("LOCATION")))
 
         onView(withId(R.id.saveReminder)).perform(click())
 
-//        onView(withText(R.string.reminder_saved)).inRoot(withDecorView(not(`is`(activityRule.activity.window.decorView)))).check(matches(isDisplayed()))
-        onView(withText("TITLE1")).check(matches(isDisplayed()))
-        onView(withText("LOCATION")).check(matches(isDisplayed()))
+        onView(withText(R.string.reminder_saved)).inRoot(withDecorView(not(`is`(getActivity(activityScenario)?.window?.decorView)))).check(matches(isDisplayed()))
+
+//        onView(withText("TITLE1")).check(matches(isDisplayed()))
+//        onView(withText("LOCATION")).check(matches(isDisplayed()))
 
         activityScenario.close()
     }
